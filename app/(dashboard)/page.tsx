@@ -12,6 +12,7 @@ import { FaWpforms } from "react-icons/fa";
 import { HiCursorClick } from "react-icons/hi";
 import { TbArrowBounce } from "react-icons/tb";
 import { Separator } from "@/app/components/ui/separator";
+import CreateFormButton from "@/app/components/CreateFormButton";
 function page() {
   return (
     <div className="container pt-4">
@@ -21,6 +22,7 @@ function page() {
       <Separator className="my-6" />
       <h2 className="text-4xl font-bold col-span-2">Your Form</h2>
       <Separator className="my-6" />
+      <CreateFormButton></CreateFormButton>
     </div>
   );
 }

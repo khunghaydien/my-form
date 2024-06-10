@@ -2,12 +2,17 @@
 
 import { currentUser } from "@clerk/nextjs/server"
 import prisma from "../lib/prisma";
-class UserNotFoundError extends Error { }
+class UserNotFoundError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "UserNotFoundError"
+    }
+}
 export async function getFormStats() {
     const user = await currentUser();
 
     if (!user) {
-        throw new UserNotFoundError()
+        throw new UserNotFoundError("User not found")
     }
 
     const stats = prisma.form.aggregate({
