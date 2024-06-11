@@ -1,18 +1,26 @@
-import { getFormStats } from "@/app/actions/form";
+import { getFormStats, getForms } from "@/app/actions/form";
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import React, { ReactNode, Suspense } from "react";
 import { LuView } from "react-icons/lu";
-import { FaWpforms } from "react-icons/fa";
+import { FaEdit, FaWpforms } from "react-icons/fa";
 import { HiCursorClick } from "react-icons/hi";
 import { TbArrowBounce } from "react-icons/tb";
+import { BiRightArrowAlt } from "react-icons/bi";
 import { Separator } from "@/app/components/ui/separator";
 import CreateFormButton from "@/app/components/CreateFormButton";
+import { Form } from "@prisma/client";
+import { Badge } from "@/app/components/ui/badge";
+import { formatDistance } from "date-fns";
+import { Button } from "@/app/components/ui/button";
+import Link from "next/link";
 function page() {
   return (
     <div className="container pt-4">
@@ -22,11 +30,15 @@ function page() {
       <Separator className="my-6" />
       <h2 className="text-4xl font-bold col-span-2">Your Form</h2>
       <Separator className="my-6" />
-      <CreateFormButton></CreateFormButton>
+      <Suspense fallback={<FormCardSkeleton />}>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <CreateFormButton />
+          <FormCards />
+        </div>
+      </Suspense>
     </div>
   );
 }
-
 async function CardStatsWrapper() {
   const stats = await getFormStats();
   return <StatsCards loading={false} data={stats} />;
@@ -111,6 +123,78 @@ function StatsCard({
         </div>
         <p className="text-xs text-muted-foreground pt-1">{helperText}</p>
       </CardContent>
+    </Card>
+  );
+}
+function FormCardSkeleton() {
+  return (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3, 4, 5].map((el) => (
+        <Skeleton
+          key={el}
+          className="border-2 border-primary-/20 h-[190px] w-full"
+        />
+      ))}
+    </div>
+  );
+}
+async function FormCards() {
+  const forms = await getForms();
+  return (
+    <>
+      {forms.map((form: Form) => (
+        <FormCard key={form.id} form={form} />
+      ))}
+    </>
+  );
+}
+
+function FormCard({ form }: { form: Form }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 justify-between">
+          <span className="truncate font-bole">{form.name}</span>
+          {form.published && <Badge>Published</Badge>}
+          {!form.published && <Badge variant={"destructive"}>Draft</Badge>}
+        </CardTitle>
+        <CardDescription className="flex flex-center justify-between text-muted-foreground text-sm">
+          {formatDistance(form.createdAt, new Date(), {
+            addSuffix: true,
+          })}
+          {form.published && (
+            <div className="flex items-center gap-2">
+              <LuView className="text-muted-foreground" />
+              <span>{form.visits.toLocaleString()}</span>
+              <FaWpforms className="text-muted-foreground" />
+              <span>{form.submissions.toLocaleString()}</span>
+            </div>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="h-[20px] truncate text-sm text-muted-foreground">
+        {form.description || "No description"}
+      </CardContent>
+      <CardFooter>
+        {form.published && (
+          <Button asChild className="w-full mt-2 text-md gap-4">
+            <Link href={`/form/${form.id}`}>
+              View Submissions <BiRightArrowAlt />
+            </Link>
+          </Button>
+        )}
+        {!form.published && (
+          <Button
+            asChild
+            variant={"secondary"}
+            className="w-full mt-2 text-md gap-4"
+          >
+            <Link href={`/builder/${form.id}`}>
+              Edit form <FaEdit />
+            </Link>
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 }
